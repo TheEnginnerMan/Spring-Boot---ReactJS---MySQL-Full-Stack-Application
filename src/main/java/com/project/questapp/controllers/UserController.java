@@ -1,8 +1,8 @@
 package com.project.questapp.controllers;
 
 import java.util.List;
-import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,55 +13,45 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.questapp.entities.User;
-import com.project.questapp.repository.UserRepository;
+import com.project.questapp.services.UserService;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
-	private UserRepository userRepository;
+	private UserService userService;
 
-	public UserController(UserRepository userRepository) {
-		this.userRepository = userRepository;
+	@Autowired
+	public UserController(UserService userService) {
+		this.userService = userService;
 	}
 
 	@GetMapping
 	public List<User> getAllUsers() {
-		return this.userRepository.findAll();
+		return this.userService.getAllUsers();
 	}
 
 	@PostMapping
 	public User createUser(@RequestBody User user) {
-		return this.userRepository.save(user);
+		return this.userService.createUser(user);
 	}
 
 	@GetMapping("/{userId}")
 	public User getOneUser(@PathVariable Integer userId) {
 		// custom Exception
-		return this.userRepository.findById(userId).orElse(null); // user database de olmazsa null dönecek
+		return this.userService.getOneUser(userId);
 	}
 
-	@PutMapping({ "/userId" }) // Var olan idli bir useri değiştirmek için kullanılır.Üzerinde değişiklik
-								// yapılabilir
+	// Var olan idli bir useri değiştirmek için kullanılır.Üzerinde değişiklik
+	// yapılabilir
+	@PutMapping({ "/userId" })
 	public User updateOneUser(@PathVariable Integer userId, @RequestBody User user) {
-		Optional<User> user1 = userRepository.findById(userId); // update edilmeden önce userIdsi belirtilen useri
-																// bulur.
-		if (user1.isPresent()) // optinal alınan user databasede mevcut mu değil mi diye takibi yapılabilir
-		{
-			User foundUser = user1.get(); // optiona gelen user alındı
-			foundUser.setUsername(user.getUsername());
-			foundUser.setPassword(user.getPassword());
-
-			this.userRepository.save(foundUser);
-			return foundUser;
-		} else {
-			return null;
-		}
+		return this.userService.updateOneUser(userId, user);
 	}
 
 	@DeleteMapping({ "/userId" })
 	public void deleteOneUser(Integer userId) {
-		this.userRepository.deleteById(userId);
+		this.userService.deleteOneUser(userId);
 	}
 
 }
